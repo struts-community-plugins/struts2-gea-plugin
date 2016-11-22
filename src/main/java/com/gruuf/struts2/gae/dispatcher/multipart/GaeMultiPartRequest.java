@@ -1,14 +1,12 @@
 package com.gruuf.struts2.gae.dispatcher.multipart;
 
-import com.opensymphony.xwork2.inject.Inject;
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.*;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.struts2.StrutsConstants;
+import org.apache.struts2.dispatcher.multipart.AbstractMultiPartRequest;
 import org.apache.struts2.dispatcher.multipart.MultiPartRequest;
 import org.apache.struts2.dispatcher.multipart.UploadedFile;
 import org.apache.struts2.dispatcher.LocalizedMessage;
@@ -27,7 +25,7 @@ import java.util.Map;
  * Dedicated {@link MultiPartRequest} that doesn't depend on {@link java.io.File} to avoid problems
  * when running in AppEngine container.
  */
-public class GaeMultiPartRequest implements MultiPartRequest {
+public class GaeMultiPartRequest extends AbstractMultiPartRequest {
 
     private static final Logger LOG = LogManager.getLogger(GaeMultiPartRequest.class);
 
@@ -40,16 +38,6 @@ public class GaeMultiPartRequest implements MultiPartRequest {
     // maps parameter name -> List of param values
     private final Map<String, List<String>> params = new HashMap<>();
 
-    // any errors while processing this request
-    private final List<LocalizedMessage> errors = new ArrayList<>();
-
-    private long maxSize;
-
-    @Inject(StrutsConstants.STRUTS_MULTIPART_MAXSIZE)
-    public void setMaxSize(String maxSize) {
-        this.maxSize = Long.parseLong(maxSize);
-    }
-
     /**
      * Creates a new request wrapper to handle multi-part data using methods adapted from Jason Pell's
      * multipart classes (see class description).
@@ -58,67 +46,103 @@ public class GaeMultiPartRequest implements MultiPartRequest {
      * @throws java.io.IOException is thrown if encoding fails.
      */
     public void parse(HttpServletRequest request, String saveDir) throws IOException {
-
-        // Parse the request
         try {
-            ServletFileUpload upload = new ServletFileUpload();
-            upload.setSizeMax(maxSize);
-
-            FileItemIterator iterator = upload.getItemIterator(request);
-
-            while (iterator.hasNext()) {
-                FileItemStream itemStream = iterator.next();
-                InputStream in = itemStream.openStream();
-
-                LOG.debug("Found item " + itemStream.getFieldName());
-
-                if (itemStream.isFormField()) {
-                    LOG.debug("Item is a normal form field");
-
-                    List<String> values;
-                    if (params.get(itemStream.getFieldName()) != null) {
-                        values = params.get(itemStream.getFieldName());
-                    } else {
-                        values = new ArrayList<>();
-                    }
-
-                    values.add(IOUtils.toString(in, "ISO-8859-1"));
-                    params.put(itemStream.getFieldName(), values);
-                } else {
-                    LOG.debug("Item is a file upload");
-
-                    // Skip file uploads that don't have a file name - meaning that no file was selected.
-                    if (itemStream.getName() == null || itemStream.getName().trim().length() < 1) {
-                        LOG.debug("No file has been uploaded for the field: " + itemStream.getFieldName());
-                        continue;
-                    }
-
-                    List<FileItemStream> values;
-                    List<UploadedFile> fileValues;
-                    if (files.get(itemStream.getFieldName()) != null) {
-                        values = files.get(itemStream.getFieldName());
-                        fileValues = fileContents.get(itemStream.getFieldName());
-                    } else {
-                        values = new ArrayList<>();
-                        fileValues = new ArrayList<>();
-                    }
-
-                    values.add(itemStream);
-                    fileValues.add(new GaeUploadedFile(itemStream.getName(), IOUtils.toByteArray(itemStream.openStream())));
-                    files.put(itemStream.getFieldName(), values);
-                    fileContents.put(itemStream.getFieldName(), fileValues);
-                }
-            }
+            setLocale(request);
+            processUpload(request);
         } catch (FileUploadException e) {
-            LOG.error("Unable to parse request", e);
-            errors.add(buildErrorMessage(e, new Object[]{}));
+            LOG.warn("Request exceeded size limit!", e);
+            LocalizedMessage errorMessage;
+            if(e instanceof FileUploadBase.SizeLimitExceededException) {
+                FileUploadBase.SizeLimitExceededException ex = (FileUploadBase.SizeLimitExceededException) e;
+                errorMessage = buildErrorMessage(e, new Object[]{ex.getPermittedSize(), ex.getActualSize()});
+            } else {
+                errorMessage = buildErrorMessage(e, new Object[]{});
+            }
+
+            if (!errors.contains(errorMessage)) {
+                errors.add(errorMessage);
+            }
+        } catch (Exception e) {
+            LOG.warn("Unable to parse request", e);
+            LocalizedMessage errorMessage = buildErrorMessage(e, new Object[]{});
+            if (!errors.contains(errorMessage)) {
+                errors.add(errorMessage);
+            }
         }
     }
 
-    protected LocalizedMessage buildErrorMessage(Throwable e, Object[] args) {
-        String errorKey = "struts.messages.upload.error." + e.getClass().getSimpleName();
-        LOG.debug("Preparing error message for key: [{}]", errorKey);
-        return new LocalizedMessage(this.getClass(), errorKey, e.getMessage(), args);
+    private void processUpload(HttpServletRequest request) throws FileUploadException, IOException {
+        FileItemIterator iterator = parseRequest(request);
+        while (iterator.hasNext()) {
+            FileItemStream itemStream = iterator.next();
+            LOG.debug("Found file item: [{}]", itemStream.getFieldName());
+
+            if (itemStream.isFormField()) {
+                processNormalFormField(itemStream, request.getCharacterEncoding());
+            } else {
+                processFileField(itemStream);
+            }
+        }
+    }
+
+    private void processFileField(FileItemStream itemStream) throws IOException {
+        List<FileItemStream> values;
+        List<UploadedFile> fileValues;
+        if (files.get(itemStream.getFieldName()) != null) {
+            values = files.get(itemStream.getFieldName());
+            fileValues = fileContents.get(itemStream.getFieldName());
+        } else {
+            values = new ArrayList<>();
+            fileValues = new ArrayList<>();
+        }
+
+        values.add(itemStream);
+        fileValues.add(new GaeUploadedFile(itemStream.getName(), IOUtils.toByteArray(itemStream.openStream())));
+        files.put(itemStream.getFieldName(), values);
+        fileContents.put(itemStream.getFieldName(), fileValues);
+    }
+
+    private void processNormalFormField(FileItemStream itemStream, String charset) throws IOException {
+        LOG.debug("Item is a normal form field");
+
+        List<String> values;
+        if (params.get(itemStream.getFieldName()) != null) {
+            values = params.get(itemStream.getFieldName());
+        } else {
+            values = new ArrayList<>();
+        }
+
+        InputStream in = itemStream.openStream();
+
+        if (charset == null) {
+            LOG.debug("Request doesn't specify encoding, using {}", defaultEncoding);
+            values.add(IOUtils.toString(in, defaultEncoding));
+        } else {
+            LOG.debug("Used request's encoding {}", charset);
+            values.add(IOUtils.toString(in, charset));
+        }
+
+        params.put(itemStream.getFieldName(), values);
+    }
+
+    private FileItemIterator parseRequest(HttpServletRequest request) throws FileUploadException, IOException {
+        ServletFileUpload upload = new ServletFileUpload();
+        upload.setSizeMax(maxSize);
+
+        return upload.getItemIterator(request);
+    }
+
+    protected ServletFileUpload createServletFileUpload(DiskFileItemFactory fac) {
+        ServletFileUpload upload = new ServletFileUpload(fac);
+        upload.setSizeMax(maxSize);
+        return upload;
+    }
+
+    protected DiskFileItemFactory createDiskFileItemFactory() {
+        DiskFileItemFactory fac = new DiskFileItemFactory();
+        // Make sure that the data is written to file
+        fac.setSizeThreshold(0);
+        return fac;
     }
 
     public Enumeration<String> getFileParameterNames() {
@@ -152,7 +176,7 @@ public class GaeMultiPartRequest implements MultiPartRequest {
             return null;
         }
 
-        List<String> fileNames = new ArrayList<String>(items.size());
+        List<String> fileNames = new ArrayList<>(items.size());
         for (FileItemStream fileItem : items) {
             fileNames.add(getCanonicalName(fileItem.getName()));
         }
