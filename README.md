@@ -2,6 +2,8 @@
 
 Plugin supporting developing and running Apache Struts 2 based application on Google AppEngine.
 
+[![Build Status](https://travis-ci.org/lukaszlenart/struts2-gea-plugin.svg?branch=master)](https://travis-ci.org/lukaszlenart/struts2-gea-plugin)
+
 ### Installation
 
 Just add this plugin as a dependency in `pom.xml`:
