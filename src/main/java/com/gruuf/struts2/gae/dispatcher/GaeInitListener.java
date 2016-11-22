@@ -8,7 +8,7 @@ import javax.servlet.ServletContextListener;
 /**
  * Disables OGNL Security Manager as this won't work on Google AppEngine
  */
-public class GaeInitListner implements ServletContextListener {
+public class GaeInitListener implements ServletContextListener {
 
     public void contextInitialized(ServletContextEvent sce) {
         OgnlRuntime.setSecurityManager(null);
