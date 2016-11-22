@@ -9,6 +9,7 @@
   <version>1.0-SNAPSHOT</version>
 
   <name>Apache Struts 2 Google AppEngine plugin</name>
+  <description>Supports running Apache Struts 2 based application on Google AppEngine</description>
   <url>http://gruuf.com</url>
 
   <properties>
