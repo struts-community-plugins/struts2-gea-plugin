@@ -34,6 +34,8 @@ This filter detects if OGNL was properly configured, to do so add the following 
 </listener>
 ```
 
+### Testimonials
+
 This plugin based on code developed here https://code.google.com/archive/p/struts2-gae/
 
 More details can be found here https://squarepusher782.wordpress.com/2010/10/01/file-upload-on-google-app-engine-using-struts2-revisited/
