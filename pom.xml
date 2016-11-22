@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
-    <version>RELEASE</version>
+    <version>9</version>
   </parent>
 
   <groupId>com.gruuf</groupId>
