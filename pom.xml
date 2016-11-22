@@ -3,6 +3,12 @@
 
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>RELEASE</version>
+  </parent>
+
   <groupId>com.gruuf</groupId>
   <artifactId>struts2-gae-plugin</artifactId>
   <packaging>jar</packaging>
@@ -16,6 +22,20 @@
     <struts2.version>2.5.6-SNAPSHOT</struts2.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments />
+    </license>
+  </licenses>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:lukaszlenart/struts2-gea-plugin.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
 
   <dependencies>
     <dependency>
