@@ -59,7 +59,10 @@
       <id>travis</id>
       <activation>
         <activeByDefault>false</activeByDefault>
-        <property>${env.TRAVIS}</property>
+        <property>
+          <name>${env.TRAVIS}</name>
+          <value>true</value>
+        </property>
       </activation>
       <repositories>
         <repository>
