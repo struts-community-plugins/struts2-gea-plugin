@@ -10,6 +10,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.struts2.StrutsConstants;
 import org.apache.struts2.dispatcher.multipart.MultiPartRequest;
+import org.apache.struts2.dispatcher.multipart.UploadedFile;
+import org.apache.struts2.dispatcher.LocalizedMessage;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -22,28 +24,24 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Multipart form data request adapter for Jakarta Commons Fileupload package.This class does not implement  {@link MultiPartRequest} as it
- * provide some additional functionality which are required for doing file upload on google app engine.
- * This class should be specifically used for Google App Engine.
- *
- * @author whyjava7@gmail.com
- * @version 0.1
+ * Dedicated {@link MultiPartRequest} that doesn't depend on {@link java.io.File} to avoid problems
+ * when running in AppEngine container.
  */
-public class GaeMultiPartRequest {
+public class GaeMultiPartRequest implements MultiPartRequest {
 
-    static final Logger LOG = LogManager.getLogger(GaeMultiPartRequest.class);
+    private static final Logger LOG = LogManager.getLogger(GaeMultiPartRequest.class);
 
     // maps parameter name -> List of FileItemStream objects
     private final Map<String, List<FileItemStream>> files = new HashMap<>();
 
     // maps parameter name -> List of String which contains encoded file contents
-    private final Map<String, List<GaeUploadedFile>> fileContents = new HashMap<>();
+    private final Map<String, List<UploadedFile>> fileContents = new HashMap<>();
 
     // maps parameter name -> List of param values
     private final Map<String, List<String>> params = new HashMap<>();
 
     // any errors while processing this request
-    private final List<String> errors = new ArrayList<>();
+    private final List<LocalizedMessage> errors = new ArrayList<>();
 
     private long maxSize;
 
@@ -59,8 +57,7 @@ public class GaeMultiPartRequest {
      * @param request the request containing the multipart
      * @throws java.io.IOException is thrown if encoding fails.
      */
-    public void parse(HttpServletRequest request)
-            throws IOException {
+    public void parse(HttpServletRequest request, String saveDir) throws IOException {
 
         // Parse the request
         try {
@@ -97,7 +94,7 @@ public class GaeMultiPartRequest {
                     }
 
                     List<FileItemStream> values;
-                    List<GaeUploadedFile> fileValues;
+                    List<UploadedFile> fileValues;
                     if (files.get(itemStream.getFieldName()) != null) {
                         values = files.get(itemStream.getFieldName());
                         fileValues = fileContents.get(itemStream.getFieldName());
@@ -107,15 +104,21 @@ public class GaeMultiPartRequest {
                     }
 
                     values.add(itemStream);
-                    fileValues.add(new GaeUploadedFile(IOUtils.toByteArray(itemStream.openStream())));
+                    fileValues.add(new GaeUploadedFile(itemStream.getName(), IOUtils.toByteArray(itemStream.openStream())));
                     files.put(itemStream.getFieldName(), values);
                     fileContents.put(itemStream.getFieldName(), fileValues);
                 }
             }
         } catch (FileUploadException e) {
             LOG.error("Unable to parse request", e);
-            errors.add(e.getMessage());
+            errors.add(buildErrorMessage(e, new Object[]{}));
         }
+    }
+
+    protected LocalizedMessage buildErrorMessage(Throwable e, Object[] args) {
+        String errorKey = "struts.messages.upload.error." + e.getClass().getSimpleName();
+        LOG.debug("Preparing error message for key: [{}]", errorKey);
+        return new LocalizedMessage(this.getClass(), errorKey, e.getMessage(), args);
     }
 
     public Enumeration<String> getFileParameterNames() {
@@ -137,8 +140,9 @@ public class GaeMultiPartRequest {
         return contentTypes.toArray(new String[contentTypes.size()]);
     }
 
-    public List<GaeUploadedFile> getFileContents(String fieldName) {
-        return fileContents.get(fieldName);
+    public UploadedFile[] getFile(String fieldName) {
+        List<UploadedFile> uploadedFiles = fileContents.get(fieldName);
+        return uploadedFiles.toArray(new UploadedFile[uploadedFiles.size()]);
     }
 
     public String[] getFileNames(String fieldName) {
@@ -182,7 +186,7 @@ public class GaeMultiPartRequest {
         return null;
     }
 
-    public List<String> getErrors() {
+    public List<LocalizedMessage> getErrors() {
         return errors;
     }
 
@@ -204,4 +208,7 @@ public class GaeMultiPartRequest {
         return filename;
     }
 
+    public void cleanUp() {
+        // no-op
+    }
 }

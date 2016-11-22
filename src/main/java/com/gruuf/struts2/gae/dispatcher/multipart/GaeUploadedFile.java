@@ -1,18 +1,45 @@
 package com.gruuf.struts2.gae.dispatcher.multipart;
 
-public class GaeUploadedFile {
+import org.apache.struts2.dispatcher.multipart.UploadedFile;
 
-    private byte[] bytes;
+public class GaeUploadedFile implements UploadedFile {
 
-    public GaeUploadedFile(byte[] bytes) {
-        this.bytes = bytes;
+    private String name;
+    private byte[] content;
+
+    GaeUploadedFile(String name, byte[] content) {
+        this.name = name;
+        this.content = content;
     }
 
-    public byte[] getBytes() {
-        return bytes;
+    @Override
+    public Long length() {
+        return (long) content.length;
     }
 
-    public Long getLength() {
-        return bytes != null ? bytes.length : 0L;
+    @Override
+    public String getName() {
+        return name;
     }
+
+    @Override
+    public boolean isFile() {
+        return true;
+    }
+
+    @Override
+    public boolean delete() {
+        return false;
+    }
+
+    @Override
+    public String getAbsolutePath() {
+        return null;
+    }
+
+    @Override
+    public Object getContent() {
+        return content;
+    }
+
 }
