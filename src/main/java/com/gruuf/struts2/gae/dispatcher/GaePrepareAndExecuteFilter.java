@@ -3,6 +3,7 @@ package com.gruuf.struts2.gae.dispatcher;
 import ognl.OgnlRuntime;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.struts2.dispatcher.InitOperations;
 import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
 
 import javax.servlet.FilterConfig;
@@ -28,4 +29,8 @@ public class GaePrepareAndExecuteFilter extends StrutsPrepareAndExecuteFilter {
         super.init(filterConfig);
     }
 
+    @Override
+    protected InitOperations createInitOperations() {
+        return new GaeInitOperations();
+    }
 }
