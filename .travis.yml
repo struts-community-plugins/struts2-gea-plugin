@@ -2,7 +2,7 @@ language: java
 sudo: false
 
 after_success:
-  - mvn deploy --settings travis-settings.xml
+  - mvn deploy --settings travis-settings.xml -DskipTests=true -B
 
 env:
   global:
