@@ -1,0 +1,8 @@
+<!-- settings.xml -->
+<servers>
+    <server>
+        <id>sonatype-nexus-snapshots</id>
+        <username>lukaszlenart</username>
+        <password>${env.SONATYPE_PASSWORD}</password>
+    </server>
+</servers>
