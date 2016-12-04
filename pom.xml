@@ -43,6 +43,7 @@
       <artifactId>struts2-core</artifactId>
       <version>${struts2.version}</version>
       <scope>compile</scope>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
