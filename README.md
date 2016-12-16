@@ -3,7 +3,7 @@
 Plugin supporting developing and running Apache Struts 2 based application on Google AppEngine.
 
 [![Build Status](https://travis-ci.org/lukaszlenart/struts2-gea-plugin.svg?branch=master)](https://travis-ci.org/lukaszlenart/struts2-gea-plugin)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gruuf/struts2-ge-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.gruuf/struts2-gae-plugin/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gruuf/struts2-gae-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.gruuf/struts2-gae-plugin/)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 ### Installation
