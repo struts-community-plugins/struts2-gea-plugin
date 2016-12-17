@@ -42,4 +42,10 @@ public class GaeUploadedFile implements UploadedFile {
         return content;
     }
 
+    @Override
+    public String toString() {
+        return "GaeUploadedFile{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }
