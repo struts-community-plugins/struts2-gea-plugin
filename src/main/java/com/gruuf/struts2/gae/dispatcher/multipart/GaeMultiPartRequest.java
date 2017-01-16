@@ -132,19 +132,6 @@ public class GaeMultiPartRequest extends AbstractMultiPartRequest {
         return upload.getItemIterator(request);
     }
 
-    protected ServletFileUpload createServletFileUpload(DiskFileItemFactory fac) {
-        ServletFileUpload upload = new ServletFileUpload(fac);
-        upload.setSizeMax(maxSize);
-        return upload;
-    }
-
-    protected DiskFileItemFactory createDiskFileItemFactory() {
-        DiskFileItemFactory fac = new DiskFileItemFactory();
-        // Make sure that the data is written to file
-        fac.setSizeThreshold(0);
-        return fac;
-    }
-
     public Enumeration<String> getFileParameterNames() {
         return Collections.enumeration(files.keySet());
     }
@@ -156,7 +143,7 @@ public class GaeMultiPartRequest extends AbstractMultiPartRequest {
             return null;
         }
 
-        List<String> contentTypes = new ArrayList<String>(items.size());
+        List<String> contentTypes = new ArrayList<>(items.size());
         for (FileItemStream fileItem : items) {
             contentTypes.add(fileItem.getContentType());
         }
