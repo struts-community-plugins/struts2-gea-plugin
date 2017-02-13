@@ -18,7 +18,7 @@
   <url>http://gruuf.com</url>
 
   <properties>
-    <struts2.version>2.5.9-SNAPSHOT</struts2.version>
+    <struts2.version>2.5.10</struts2.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
