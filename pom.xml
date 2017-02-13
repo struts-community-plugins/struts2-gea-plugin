@@ -11,7 +11,7 @@
   <groupId>com.gruuf</groupId>
   <artifactId>struts2-gae-plugin</artifactId>
   <packaging>jar</packaging>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.1</version>
 
   <name>Apache Struts 2 Google AppEngine plugin</name>
   <description>Supports running Apache Struts 2 based application on Google AppEngine</description>
