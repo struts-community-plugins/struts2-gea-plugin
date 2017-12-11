@@ -6,7 +6,7 @@ Plugin supporting developing and running Apache Struts 2 based application on Go
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.gruuf/struts2-gae-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.gruuf/struts2-gae-plugin/)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-### Installation
+## Installation
 
 Just add this plugin as a dependency in `pom.xml`:
 
@@ -18,8 +18,10 @@ Just add this plugin as a dependency in `pom.xml`:
 </dependency>
 ```
 
-and then instead of using common `org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter` filter in `web.xml`,
-use the one that was included in the plugin:
+### File upload support
+
+To provide a proper file upload support on the Google AppEngine you must use the below filter instead of the one provided
+by Struts, update `web.xml` as follow:
 
 ```xml
 <filter>
@@ -36,8 +38,43 @@ This filter detects if OGNL was properly configured, to do so add the following 
 </listener>
 ```
 
+It also redefine `Dispatcher`'s `getSaveDir` to allow properly upload files on AppEngine.
+
+### reCAPTCHA support
+
+There is a dedicated interceptor with connected interface to allow perform reCAPTCHA validation per action.
+
+First you must define your reCAPTCHA secret using a constant:
+
+```xml
+<constant name="struts.gae.reCaptchaSecret" value="${env.GRUUF_RECAPTCHA_SECRET}"/>
+```
+
+Now your action can implement `ReCaptchaAware` interface and implement the below methods:
+
+- `setReCaptchaResult` - you will get `true` when reCAPTCHA validation has passed
+- `isReCaptchaEnabled` - allows you enabling/disabling reCAPTCHA validation per action, e.g.: when user is logged-in
+  you don't want to perform the validation
+  
+The last thing is to define the reCAPTCHA interceptor and add it to your interceptors stack:
+
+```xml
+<interceptor name="reCaptcha" class="com.gruuf.struts2.gae.recaptcha.ReCaptchaInterceptor"/>
+```  
+
+```xml
+<interceptor-stack name="reCaptchaStack">
+    <interceptor-ref name="strutsDefault"/>
+  <interceptor-ref name="reCaptcha"/>
+</interceptor-stack>
+```
+
+And finally you can add the reCAPTCHA code to your page.
+
 ### Testimonials
 
-This plugin based on code developed here https://code.google.com/archive/p/struts2-gae/
+This plugin is based on a code developed here https://code.google.com/archive/p/struts2-gae/
 
 More details can be found here https://squarepusher782.wordpress.com/2010/10/01/file-upload-on-google-app-engine-using-struts2-revisited/
+
+I have also taken some inspiration from here https://github.com/triologygmbh/reCAPTCHA-V2-java

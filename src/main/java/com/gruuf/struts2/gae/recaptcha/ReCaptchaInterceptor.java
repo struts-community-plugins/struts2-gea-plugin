@@ -37,14 +37,7 @@ public class ReCaptchaInterceptor extends AbstractInterceptor {
             if (reCaptchaAction.isReCaptchaEnabled()) {
                 LOG.debug("ReCaptcha enabled per action");
 
-                String secret = reCaptchaSecret;
-                if (secret == null || secret.length() == 0) {
-                    LOG.debug("No ReCaptcha secret defined per interceptor, using action {}", action.getClass().getName());
-                    secret = reCaptchaAction.getReCaptchaSecret();
-                }
-
-
-                ReCaptcha reCaptcha = new ReCaptcha(secret);
+                ReCaptcha reCaptcha = new ReCaptcha(reCaptchaSecret);
                 boolean valid = reCaptcha.isValid(request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
 
                 reCaptchaAction.setReCaptchaResult(valid);

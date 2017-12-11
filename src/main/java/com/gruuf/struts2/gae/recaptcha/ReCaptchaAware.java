@@ -10,13 +10,6 @@ public interface ReCaptchaAware {
     void setReCaptchaResult(boolean valid);
 
     /**
-     * Allows define secret per action, if configured per interceptor this should return null
-     *
-     * @return secret or null
-     */
-    String getReCaptchaSecret();
-
-    /**
      * Allows enable/disable reCaptcha validation per action
      *
      * @return true if reCaptcha validation should be performed
