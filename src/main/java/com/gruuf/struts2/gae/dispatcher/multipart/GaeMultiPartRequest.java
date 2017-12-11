@@ -201,24 +201,6 @@ public class GaeMultiPartRequest extends AbstractMultiPartRequest {
         return errors;
     }
 
-    /**
-     * Returns the canonical name of the given file.
-     *
-     * @param filename the given file
-     * @return the canonical name of the given file
-     */
-    private String getCanonicalName(String filename) {
-        int forwardSlash = filename.lastIndexOf("/");
-        int backwardSlash = filename.lastIndexOf("\\");
-        if (forwardSlash != -1 && forwardSlash > backwardSlash) {
-            filename = filename.substring(forwardSlash + 1, filename.length());
-        } else if (backwardSlash != -1 && backwardSlash >= forwardSlash) {
-            filename = filename.substring(backwardSlash + 1, filename.length());
-        }
-
-        return filename;
-    }
-
     public void cleanUp() {
         // no-op
     }
