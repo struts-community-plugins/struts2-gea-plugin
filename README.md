@@ -40,6 +40,16 @@ This filter detects if OGNL was properly configured, to do so add the following 
 
 It also redefine `Dispatcher`'s `getSaveDir` to allow properly upload files on AppEngine.
 
+#### Fields
+
+Now define fields to keep information about the uploaded file, please be aware that there is an abstraction layer in the Apache Struts which uses a `UploadedFile` interface instead of the `File` class (there is a fallback to `File` but it won't work in GAE). This means you must define your file as follow:
+
+```java
+private UploadedFile file;
+
+// getter & setter
+```
+
 ### reCAPTCHA support
 
 There is a dedicated interceptor with connected interface to allow perform reCAPTCHA validation per action.
