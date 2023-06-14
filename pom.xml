@@ -18,7 +18,7 @@
   <url>http://gruuf.com</url>
 
   <properties>
-    <struts2.version>2.5.30</struts2.version>
+    <struts2.version>2.5.31</struts2.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <log4j2.version>2.17.1</log4j2.version>
   </properties>
